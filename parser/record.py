@@ -7,8 +7,11 @@ class Operation(Enum):
     chi = -1
     peng = -2
     gang = -3
+    addGang = -4
+    anGang = -5
     hu = 0
-
+    babei = 10
+    liuju = -10
     def __str__(self):
         return self.name
 
@@ -18,27 +21,36 @@ class Position(Enum):
     south = 2
     west = 3
     north = 4
+    prev = 0
 
     def __str__(self):
         return self.name
 
 
 class Item:
-    def __init__(self, player, tile, op, source):
+    def __init__(self, player, tile, op, source,isliqi):
         """
         :param player: 1.east 2.south 3.west 4.north
         :param tile: string
-        :param op: 1:deal 2:discard -1.chi -2.peng -3.gang 0.hu
-        :param source: 1.east 2.south 3.west 4.north
+        :param op: 1:deal 2:discard -1.chi -2.peng -3.gang -4 addgang -5 angang 0.hu 10,babei -10 liuju
+        :param source: 1.east 2.south 3.west 4.north 0.prev
         """
         self.player = Position(player)
         self.tile = tile
         self.op = Operation(op)
         self.source = Position(source)
+        self.isliqi=isliqi
 
-    def __str(self):
+    def __str__(self):
         if self.op.value == 1 or self.op.value == 2:
-            return "player {0} {1} tile {2}".format(self.player, self.op, self.tile)
+            return "player {0} {1} tile {2} {3}".format(self.player, self.op, self.tile,'lizhi' if self.isliqi==1 else '')
+        elif self.op.value == 0:
+            return "player {0} hule".format(self.player)
+        elif self.op.value == 10:
+            return "player {0} babei".format(self.player)
+        elif self.op.value == -10:
+            return "流局"
+
         else:
             return "player {0} {1} tile {2}, from player{3}".format(self.player, self.op, self.tile, self.source)
 
@@ -51,12 +63,11 @@ class Round:
         self.handTiles = handTiles
         self.winner = None
         self.isZiMo = None
-        self.looser = None
         self.point = None
         self.itemList = []
 
-    def addItem(self, player, tile, op, source):
-        self.itemList.append(Item(player, tile, op, source))
+    def addItem(self, player, tile, op, source,isliqi):
+        self.itemList.append(Item(player, tile, op, source,isliqi))
 
     def endRound(self, winner, looser, isZiMo, point):
         self.winner = Position(winner)
@@ -64,25 +75,25 @@ class Round:
         self.isZiMo = isZiMo
         self.point = point
 
-    def __str__(self):
+    def print(self):
         print('{0} {1} 局 {2} 本场'.format(self.chang, self.ju, self.ben))
         print('玩家手牌：')
         for i in self.handTiles:
             print(i)
         for i in self.itemList:
-            print(i)
+            print(str(i))
         if self.isZiMo:
-            print('player {0} 自摸 {1}'.format(self.winner, self.point))
+            print('player {0} 自摸 {1} 点'.format(self.winner,self.point))
         else:
-            print('player {0} 和牌{1}，放铳者 player {2}'.format(self.winner, self.point, self.looser))
+            print('player {0} 和牌 {1} 点'.format(self.winner,self.point))
 
 
 class Game:
     def __init__(self):
         self.roundList = []
 
-    def addRound(self, chang, ju, ben, handTiles):
-        self.roundList.append(Round(chang, ju, ben, handTiles))
+    def addRound(self,round):
+        self.roundList.append(round)
 
     def __str__(self):
         for i in self.roundList:
