@@ -1,5 +1,6 @@
+import requests
 from record import *
-import numpy,math
+import base64
 
 class scanner:
     def __init__(self, data):
@@ -32,7 +33,7 @@ class parser:
     def variantToInt(self, variant):
         value = 0
         for i in range(len(variant)):
-            if variant[i] > 128:
+            if variant[i] >= 128:
                 value += (variant[i] - 128) * (128 ** i)
             else:
                 value += variant[i] * (128 ** i)
@@ -53,28 +54,25 @@ class parser:
 
 
 class parseGame(parser):
-    def __init__(self, filename):
-        with open(filename, 'rb') as file:
-            self.protoData = file.read()
+    def __init__(self, data):
+        self.protoData = data
         self.scanner = scanner(self.protoData)
         super().__init__(self.scanner)
         self.gameRecord = []
 
     def parse(self):
         field, type = self.getType()
-        if field!=1 or type!=2:
+        if field != 1 or type != 2:
             raise RuntimeError()
         length = self.getVariant()
         self.scanner.fetch(length).decode()
         field, type = self.getType()
-        if field!=2 or type!=2:
+        if field != 2 or type != 2:
             raise RuntimeError()
         length = self.getVariant()
         data = self.scanner.fetch(length)
-        a=parseRound(data)
-        self.gameRecord=a.parse()
-
-
+        a = parseRound(data)
+        self.gameRecord = a.parse()
 
 
 class parseRound(parser):
@@ -89,7 +87,7 @@ class parseRound(parser):
             raise RuntimeError()
         length = self.getVariant()
         # start game
-        tsc=parser(scanner(self.scanner.fetch(length)))
+        tsc = parser(scanner(self.scanner.fetch(length)))
         field, type = tsc.getType()
         if field != 1 or type != 2:
             raise RuntimeError()
@@ -107,22 +105,22 @@ class parseRound(parser):
             field, type = tsc.getType()
             ben = tsc.getVariant()
             field, type = tsc.getType()
-            while field<=5:
+            while field <= 5:
                 length = tsc.getVariant()
                 tsc.scanner.fetch(length)
                 field, type = tsc.getType()
-            if field==6:
+            if field == 6:
                 tsc.getVariant()
                 field, type = tsc.getType()
-            ttile=[]
-            handtile=[]
-            while field==7:
+            ttile = []
+            handtile = []
+            while field == 7:
                 length = tsc.getVariant()
                 ttile.append(tsc.scanner.fetch(length).decode())
                 field, type = tsc.getType()
             handtile.append(ttile)
             ttile = []
-            while field==8:
+            while field == 8:
                 length = tsc.getVariant()
                 ttile.append(tsc.scanner.fetch(length).decode())
                 field, type = tsc.getType()
@@ -133,27 +131,27 @@ class parseRound(parser):
                 ttile.append(tsc.scanner.fetch(length).decode())
                 field, type = tsc.getType()
             handtile.append(ttile)
-            if field==10:
+            if field == 10:
                 ttile = []
                 while field == 10:
                     length = tsc.getVariant()
                     ttile.append(tsc.scanner.fetch(length).decode())
                     field, type = tsc.getType()
                 handtile.append(ttile)
-            roundRecord=Round(chang,ju,ben,handtile)
+            roundRecord = Round(chang, ju, ben, handtile)
             print(handtile)
             field, type = self.getType()
             length = self.getVariant()
             # start game
             tsc = parser(scanner(self.scanner.fetch(length)))
             field, type = tsc.getType()
-            leng=tsc.getVariant()
-            data=tsc.scanner.fetch(leng).decode()
-            while ('Discard' in data) or ('Deal' in data) or ('Chi' in data) or ('Gang' in data) or('BaBei'in data):
+            leng = tsc.getVariant()
+            data = tsc.scanner.fetch(leng).decode()
+            while ('Discard' in data) or ('Deal' in data) or ('Chi' in data) or ('Gang' in data) or ('BaBei' in data):
                 tsc.getType()
-                thisItem=parseitem(tsc.scanner.fetch(tsc.getVariant()),data)
-                player, tile, op, source,isliqi=thisItem.parse()
-                roundRecord.addItem(player, tile, op, source,isliqi)
+                thisItem = parseitem(tsc.scanner.fetch(tsc.getVariant()), data)
+                player, tile, op, source, isliqi = thisItem.parse()
+                roundRecord.addItem(player, tile, op, source, isliqi)
                 field, type = self.getType()
                 length = self.getVariant()
                 tsc = parser(scanner(self.scanner.fetch(length)))
@@ -163,19 +161,19 @@ class parseRound(parser):
 
             if 'Hule' in data:
                 field, type = tsc.getType()
-                itf=parser(scanner(tsc.scanner.fetch(tsc.getVariant())))
+                itf = parser(scanner(tsc.scanner.fetch(tsc.getVariant())))
                 field, type = itf.getType()
                 itf1 = parser(scanner(itf.scanner.fetch(itf.getVariant())))
                 field, type = itf1.getType()
-                while field!=4:
+                while field != 4:
                     leng = itf1.getVariant()
-                    aaa=itf1.scanner.fetch(leng)
+                    aaa = itf1.scanner.fetch(leng)
                     field, type = itf1.getType()
-                player = itf1.getVariant()+1
+                player = itf1.getVariant() + 1
                 field, type = itf1.getType()
                 iszimo = itf1.getVariant()
                 field, type = itf.getType()
-                oldscore=[]
+                oldscore = []
                 itf.getVariant()
                 for i in handtile:
                     oldscore.append(itf.getVariant())
@@ -189,17 +187,17 @@ class parseRound(parser):
                 itf.getVariant()
                 for i in range(len(handtile)):
                     newscore.append(itf.getVariant())
-                point=max([abs(newscore[i]-oldscore[i]) for i in range(len(newscore))])
+                point = max([abs(newscore[i] - oldscore[i]) for i in range(len(newscore))])
                 roundRecord.addItem(player, '', 0, 0, 0)
                 roundRecord.winner = player
-                roundRecord.iszimo=iszimo
-                roundRecord.point=point
+                roundRecord.iszimo = iszimo
+                roundRecord.point = point
             if ('LiuJu' in data) or ('NoTile' in data):
                 roundRecord.addItem(0, '', -10, 0, 0)
             roundRecord.print()
             self.roundRecord.append(roundRecord)
             tmp = self.getType()
-            if tmp==None:
+            if tmp == None:
                 break
             field, type = tmp
             if field != 1 or type != 2:
@@ -216,41 +214,41 @@ class parseRound(parser):
 
 
 class parseitem(parser):
-    def __init__(self, data,type):
+    def __init__(self, data, type):
         self.scanner = scanner(data)
         super().__init__(self.scanner)
         self.itemRecord = None
-        self.type=0
-        self.d0=type
+        self.type = 0
+        self.d0 = type
         if 'Discard' in type:
-            self.type =1
+            self.type = 1
         if 'Deal' in type:
             self.type = 2
-        if  'Chi' in type:
+        if 'Chi' in type:
             self.type = 3
         if 'AnGang' in type:
-            self.type=-1
+            self.type = -1
         if 'BaBei' in type:
             self.type = 10
 
     def parse(self):
         if self.type == 10:
             field, type = self.getType()
-            player = self.getVariant()+1
-            return player,'', 10, 0, 0
-        if self.type==1 or self.type==2:
+            player = self.getVariant() + 1
+            return player, '', 10, 0, 0
+        if self.type == 1 or self.type == 2:
             field, type = self.getType()
-            player = self.getVariant()+1
+            player = self.getVariant() + 1
             field, type = self.getType()
             tile = self.scanner.fetch(self.getVariant())
             field, type = self.getType()
-            isliqi=self.getVariant()
+            isliqi = self.getVariant()
             field, type = self.getType()
             op = self.type
             source = player
         elif self.type == 3:
             field, type = self.getType()
-            player = self.getVariant()+1
+            player = self.getVariant() + 1
             field, type = self.getType()
             tt = self.getVariant()
             '''
@@ -258,33 +256,87 @@ class parseitem(parser):
             tt=1 peng
             tt=2 gang
             '''
-            op = -tt-1
+            op = -tt - 1
             field, type = self.getType()
             tile = self.scanner.fetch(self.getVariant())
             source = 0
             isliqi = 0
         else:
             field, type = self.getType()
-            player = self.getVariant()+1
+            player = self.getVariant() + 1
             field, type = self.getType()
             tt = self.getVariant()
             '''
             tt=3 an gang
             tt=2 add gang
             '''
-            op = -tt -2
+            op = -tt - 2
             field, type = self.getType()
             tile = self.scanner.fetch(self.getVariant())
             source = 0
             isliqi = 0
 
-
-        return player, tile, op, source,isliqi
-
+        return player, tile, op, source, isliqi
 
 
+def parseFromURL(url):
+    uuid = url.split('paipu=')[-1].split('_')[0]
+    r = requests.get('https://mj-srv-3.majsoul.com:7343/majsoul/game_record/' + uuid)
+    if 'NoSuchKey' in r.content.decode():
+        print("The record is too new and the majsoul server hasn't updated it yet. Please refer to other methods.")
+    else:
+        a = parseGame(r.content)
+        a.parse()
 
 
-if __name__=="__main__":
-    a=parseGame('../test/191023-b677c111-742f-4cd7-a7ee-31efef2b1928')
+def parseFromDisk(filename):
+    with open(filename, 'rb') as f:
+        data = f.read()
+    a = parseGame(data)
     a.parse()
+
+def parseFromBase64(filename):
+    with open(filename,'r') as f:
+        raw = f.read()
+    data = base64.b64decode(raw)[3:]
+    tsc=parser(scanner(data))
+    field,type=tsc.getType()
+    if field==1 and type==2:
+        tsc.scanner.fetch(tsc.getVariant())
+    field, type = tsc.getType()
+    content=tsc.scanner.fetch(tsc.getVariant())
+    tsc = parser(scanner(content))
+    field, type = tsc.getType()
+    namelist=[]
+
+    content = tsc.scanner.fetch(tsc.getVariant())
+    tt=parser(scanner(content))
+    field, type = tt.getType()
+    tt.scanner.fetch(tt.getVariant())
+    field, type = tt.getType()
+    tt.getVariant()
+    field, type = tt.getType()
+    tt.getVariant()
+    field, type = tt.getType()
+    tt.scanner.fetch(tt.getVariant())
+    field, type = tt.getType()
+    while field==11:
+        tdata=tt.scanner.fetch(tt.getVariant())
+        tt1 = parser(scanner(tdata))
+        field, type = tt1.getType()
+        tt1.getVariant()
+        field, type = tt1.getType()
+        tt1.getVariant()
+        field, type = tt1.getType()
+        name = tt1.scanner.fetch(tt1.getVariant()).decode()
+        namelist.append(name)
+        field, type = tt.getType()
+    updatePlayername(namelist)
+    field, type = tsc.getType()
+    data = tsc.scanner.fetch(tsc.getVariant())
+    a = parseGame(data)
+    a.parse()
+
+if __name__ == "__main__":
+    parseFromBase64('../test/b64.txt')
+    #parseFromDisk('../test/191023-b677c111-742f-4cd7-a7ee-31efef2b1928')

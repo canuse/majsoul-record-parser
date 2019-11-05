@@ -64,17 +64,17 @@ class Item:
                 return "player {0} {1} tile {2}, from player{3}".format(self.player, self.op, self.tile, self.source)
         else:
             if self.op.value == 1 or self.op.value == 2:
-                return "{0} {1} tile {2} {3}".format(playernames[self.player], self.op, self.tile,
+                return "{0} {1} tile {2} {3}".format(playernames[self.player.value-1], self.op, self.tile,
                                                      'lizhi' if self.isliqi == 1 else '')
             elif self.op.value == 0:
-                return "{0} hule".format(playernames[self.player])
+                return "{0} hule".format(playernames[self.player.value-1])
             elif self.op.value == 10:
-                return "{0} babei".format(playernames[self.player])
+                return "{0} babei".format(playernames[self.player.value-1])
             elif self.op.value == -10:
                 return "流局"
             else:
-                return "player {0} {1} tile {2}, from player{3}".format(playernames[self.player], self.op, self.tile,
-                                                                        playernames[self.source.value])
+                return "player {0} {1} tile {2}, from {3}".format(playernames[self.player.value-1], self.op, self.tile,
+                                                                        playernames[self.source.value-1])
 
 
 class Round:
@@ -104,6 +104,8 @@ class Round:
             print(i)
         for i in self.itemList:
             print(str(i))
+        if self.winner==None:
+            return
         if len(playernames) == 0:
             if self.isZiMo:
                 print('player {0} 自摸 {1} 点'.format(self.winner, self.point))
@@ -111,9 +113,9 @@ class Round:
                 print('player {0} 和牌 {1} 点'.format(self.winner, self.point))
         else:
             if self.isZiMo:
-                print('{0} 自摸 {1} 点'.format(playernames[self.winner], self.point))
+                print('{0} 自摸 {1} 点'.format(playernames[int(self.winner) -1], self.point))
             else:
-                print('{0} 和牌 {1} 点'.format(playernames[self.winner], self.point))
+                print('{0} 和牌 {1} 点'.format(playernames[int(self.winner) -1], self.point))
 
 
 class Game:
