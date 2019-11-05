@@ -286,14 +286,14 @@ def parseFromURL(url):
         print("The record is too new and the majsoul server hasn't updated it yet. Please refer to other methods.")
     else:
         a = parseGame(r.content)
-        a.parse()
+        return a.parse()
 
 
 def parseFromDisk(filename):
     with open(filename, 'rb') as f:
         data = f.read()
     a = parseGame(data)
-    a.parse()
+    return a.parse()
 
 def parseFromBase64(filename):
     with open(filename,'r') as f:
@@ -335,7 +335,7 @@ def parseFromBase64(filename):
     field, type = tsc.getType()
     data = tsc.scanner.fetch(tsc.getVariant())
     a = parseGame(data)
-    a.parse()
+    return a.parse()
 
 if __name__ == "__main__":
     parseFromBase64('../test/b64.txt')
