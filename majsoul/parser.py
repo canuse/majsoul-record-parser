@@ -1,7 +1,7 @@
 import base64
 
 import requests
-from record import *
+from .record import *
 
 
 class scanner:
