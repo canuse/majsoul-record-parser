@@ -67,12 +67,13 @@ class parser:
 
 
 class parseGame(parser):
-    def __init__(self, data):
+    def __init__(self, data,players):
         self.protoData = data
         self.scanner = scanner(self.protoData)
         super().__init__(self.scanner)
         self.gameRecord = []
-        self.game=Game()
+        self.game=Game(players)
+        self.players = players
 
     def parse(self):
         field, type = self.getType()
@@ -85,17 +86,18 @@ class parseGame(parser):
             raise RuntimeError()
         length = self.getVariant()
         data = self.fetch(length)
-        a = parseRound(data)
+        a = parseRound(data,self.players)
         self.gameRecord = a.parse()
         self.game.roundList=self.gameRecord
         return self.game
 
 
 class parseRound(parser):
-    def __init__(self, data):
+    def __init__(self, data,players):
         self.scanner = scanner(data)
         super().__init__(self.scanner)
         self.roundRecord = []
+        self.players = players
 
     def parse(self):
         field, type = self.getType()
@@ -154,7 +156,7 @@ class parseRound(parser):
                     ttile.append(tsc.fetch(length).decode())
                     field, type = tsc.getType()
                 handtile.append(ttile)
-            roundRecord = Round(chang, ju, ben, handtile)
+            roundRecord = Round(chang, ju, ben, handtile,self.players)
             print(handtile)
             field, type = self.getType()
             length = self.getVariant()
@@ -203,7 +205,7 @@ class parseRound(parser):
                 point = max([abs(newscore[i] - oldscore[i]) for i in range(len(newscore))])
                 roundRecord.addItem(player, '', 0, 0, 0)
                 roundRecord.winner = player
-                roundRecord.iszimo = iszimo
+                roundRecord.isZiMo = iszimo
                 roundRecord.point = point
             if ('LiuJu' in data) or ('NoTile' in data):
                 roundRecord.addItem(0, '', -10, 0, 0)
@@ -295,17 +297,19 @@ class parseitem(parser):
 def parseFromURL(url):
     uuid = url.split('paipu=')[-1].split('_')[0]
     r = requests.get('https://mj-srv-3.majsoul.com:7343/majsoul/game_record/' + uuid)
+    players = Players()
     if 'NoSuchKey' in r.content.decode():
         print("The record is too new and the majsoul server hasn't updated it yet. Please refer to other methods.")
     else:
-        a = parseGame(r.content)
+        a = parseGame(r.content,players)
         return a.parse()
 
 
 def parseFromDisk(filename):
     with open(filename, 'rb') as f:
         data = f.read()
-    a = parseGame(data)
+    players=Players()
+    a = parseGame(data,players)
     return a.parse()
 
 
@@ -339,10 +343,10 @@ def parseFromBase64(filename):
         name = tt1.fetch(tt1.getVariant()).decode()
         namelist.append(name)
         field, type = tt.getType()
-    updatePlayername(namelist)
+    players = Players(namelist)
     field, type = tsc.getType()
     data = tsc.fetch(tsc.getVariant())
-    a = parseGame(data)
+    a = parseGame(data,players)
     return a.parse()
 
 
