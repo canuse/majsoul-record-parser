@@ -64,17 +64,18 @@ class Item:
                 return "player {0} {1} tile {2}, from player{3}".format(self.player, self.op, self.tile, self.source)
         else:
             if self.op.value == 1 or self.op.value == 2:
-                return "{0} {1} tile {2} {3}".format(playernames[self.player.value-1], self.op, self.tile,
+                return "{0} {1} tile {2} {3}".format(playernames[self.player.value - 1], self.op, self.tile,
                                                      'lizhi' if self.isliqi == 1 else '')
             elif self.op.value == 0:
-                return "{0} hule".format(playernames[self.player.value-1])
+                return "{0} hule".format(playernames[self.player.value - 1])
             elif self.op.value == 10:
-                return "{0} babei".format(playernames[self.player.value-1])
+                return "{0} babei".format(playernames[self.player.value - 1])
             elif self.op.value == -10:
                 return "流局"
             else:
-                return "player {0} {1} tile {2}, from {3}".format(playernames[self.player.value-1], self.op, self.tile,
-                                                                        playernames[self.source.value-1])
+                return "player {0} {1} tile {2}, from {3}".format(playernames[self.player.value - 1], self.op,
+                                                                  self.tile,
+                                                                  playernames[self.source.value - 1])
 
 
 class Round:
@@ -104,7 +105,7 @@ class Round:
             print(i)
         for i in self.itemList:
             print(str(i))
-        if self.winner==None:
+        if self.winner == None:
             return
         if len(playernames) == 0:
             if self.isZiMo:
@@ -113,17 +114,39 @@ class Round:
                 print('player {0} 和牌 {1} 点'.format(self.winner, self.point))
         else:
             if self.isZiMo:
-                print('{0} 自摸 {1} 点'.format(playernames[int(self.winner) -1], self.point))
+                print('{0} 自摸 {1} 点'.format(playernames[int(self.winner) - 1], self.point))
             else:
-                print('{0} 和牌 {1} 点'.format(playernames[int(self.winner) -1], self.point))
+                print('{0} 和牌 {1} 点'.format(playernames[int(self.winner) - 1], self.point))
+
+    def __str__(self):
+        if self.winner == None:
+            return '{0} {1} 局 {2} 本场 '.format(['东', '南', '西', '北'][self.chang], self.ju + 1, self.ben) + '流局'
+        if len(playernames) == 0:
+            if self.isZiMo:
+                return '{0} {1} 局 {2} 本场 '.format(['东', '南', '西', '北'][self.chang], self.ju + 1,
+                                                  self.ben) + 'player {0} 自摸 {1} 点'.format(self.winner, self.point)
+            else:
+                return '{0} {1} 局 {2} 本场 '.format(['东', '南', '西', '北'][self.chang], self.ju + 1,
+                                                  self.ben) + 'player {0} 和牌 {1} 点'.format(self.winner, self.point)
+        else:
+            if self.isZiMo:
+                return '{0} {1} 局 {2} 本场 '.format(['东', '南', '西', '北'][self.chang], self.ju + 1,
+                                                  self.ben) + '{0} 自摸 {1} 点'.format(playernames[int(self.winner) - 1],
+                                                                                    self.point)
+            else:
+                return '{0} {1} 局 {2} 本场 '.format(['东', '南', '西', '北'][self.chang], self.ju + 1,
+                                                  self.ben) + '{0} 和牌 {1} 点'.format(playernames[int(self.winner) - 1],
+                                                                                    self.point)
 
 
 class Game:
     def __init__(self):
         self.roundList = []
-
-    def addRound(self, round):
-        self.roundList.append(round)
+        global playernames
+        if playernames == []:
+            self.players = ['player 1', 'player 2', 'player 3', 'player 4']
+        else:
+            self.players = playernames
 
     def __str__(self):
         for i in self.roundList:

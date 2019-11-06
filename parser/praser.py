@@ -72,6 +72,7 @@ class parseGame(parser):
         self.scanner = scanner(self.protoData)
         super().__init__(self.scanner)
         self.gameRecord = []
+        self.game=Game()
 
     def parse(self):
         field, type = self.getType()
@@ -86,6 +87,8 @@ class parseGame(parser):
         data = self.fetch(length)
         a = parseRound(data)
         self.gameRecord = a.parse()
+        self.game.roundList=self.gameRecord
+        return self.game
 
 
 class parseRound(parser):
