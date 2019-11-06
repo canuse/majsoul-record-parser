@@ -67,12 +67,12 @@ class parser:
 
 
 class parseGame(parser):
-    def __init__(self, data,players):
+    def __init__(self, data, players):
         self.protoData = data
         self.scanner = scanner(self.protoData)
         super().__init__(self.scanner)
         self.gameRecord = []
-        self.game=Game(players)
+        self.game = Game(players)
         self.players = players
 
     def parse(self):
@@ -86,14 +86,14 @@ class parseGame(parser):
             raise RuntimeError()
         length = self.getVariant()
         data = self.fetch(length)
-        a = parseRound(data,self.players)
+        a = parseRound(data, self.players)
         self.gameRecord = a.parse()
-        self.game.roundList=self.gameRecord
+        self.game.roundList = self.gameRecord
         return self.game
 
 
 class parseRound(parser):
-    def __init__(self, data,players):
+    def __init__(self, data, players):
         self.scanner = scanner(data)
         super().__init__(self.scanner)
         self.roundRecord = []
@@ -156,8 +156,8 @@ class parseRound(parser):
                     ttile.append(tsc.fetch(length).decode())
                     field, type = tsc.getType()
                 handtile.append(ttile)
-            roundRecord = Round(chang, ju, ben, handtile,self.players)
-            print(handtile)
+            roundRecord = Round(chang, ju, ben, handtile, self.players)
+            #print(handtile)
             field, type = self.getType()
             length = self.getVariant()
             # start game
@@ -209,7 +209,7 @@ class parseRound(parser):
                 roundRecord.point = point
             if ('LiuJu' in data) or ('NoTile' in data):
                 roundRecord.addItem(0, '', -10, 0, 0)
-            roundRecord.print()
+            #roundRecord.print()
             self.roundRecord.append(roundRecord)
             tmp = self.getType()
             if tmp == None:
@@ -301,15 +301,15 @@ def parseFromURL(url):
     if 'NoSuchKey' in r.content.decode():
         print("The record is too new and the majsoul server hasn't updated it yet. Please refer to other methods.")
     else:
-        a = parseGame(r.content,players)
+        a = parseGame(r.content, players)
         return a.parse()
 
 
 def parseFromDisk(filename):
     with open(filename, 'rb') as f:
         data = f.read()
-    players=Players()
-    a = parseGame(data,players)
+    players = Players()
+    a = parseGame(data, players)
     return a.parse()
 
 
@@ -345,11 +345,21 @@ def parseFromBase64(filename):
         field, type = tt.getType()
     players = Players(namelist)
     field, type = tsc.getType()
-    data = tsc.fetch(tsc.getVariant())
-    a = parseGame(data,players)
-    return a.parse()
+    length = tsc.getVariant()
+    if length != 0 and field == 5:
+        data = tsc.fetch(length)
+        a = parseGame(data, players)
+        return a.parse()
+    else:
+        tsc.fetch(length)
+        field, type = tsc.getType()
+        data = tsc.fetch(tsc.getVariant()).decode()
+        r = requests.get(data)
+        a = parseGame(r.content, players)
+        return a.parse()
 
 
 if __name__ == "__main__":
-    parseFromBase64('../test/b64.txt')
+    a=parseFromBase64('../test/b642.txt')
+    a.print()
     # parseFromDisk('../test/191023-b677c111-742f-4cd7-a7ee-31efef2b1928')

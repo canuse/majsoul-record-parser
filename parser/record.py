@@ -37,7 +37,7 @@ class Position(Enum):
 
 
 class Item:
-    def __init__(self, player, tile, op, source, isliqi,players:Players):
+    def __init__(self, player, tile, op, source, isliqi, players: Players):
         """
         :param player: 1.east 2.south 3.west 4.north
         :param tile: string
@@ -45,7 +45,7 @@ class Item:
         :param source: 1.east 2.south 3.west 4.north 0.prev
         """
         self.player = Position(player)
-        self.playername=players.playernames[self.player.value - 1]
+        self.playername = players.playernames[self.player.value - 1]
         self.tile = tile
         self.op = Operation(op)
         self.isliqi = isliqi
@@ -62,11 +62,11 @@ class Item:
             return "流局"
         else:
             return "player {0} {1} tile {2}".format(self.playername, self.op,
-                                                              self.tile)
+                                                    self.tile)
 
 
 class Round:
-    def __init__(self, chang, ju, ben, handTiles,players:Players):
+    def __init__(self, chang, ju, ben, handTiles, players: Players):
         self.ju = ju
         self.chang = chang
         self.ben = ben
@@ -75,10 +75,10 @@ class Round:
         self.isZiMo = None
         self.point = None
         self.itemList = []
-        self.players=players
+        self.players = players
 
     def addItem(self, player, tile, op, source, isliqi):
-        self.itemList.append(Item(player, tile, op, source, isliqi,self.players))
+        self.itemList.append(Item(player, tile, op, source, isliqi, self.players))
 
     def endRound(self, winner, looser, isZiMo, point):
         self.winner = Position(winner)
@@ -106,12 +106,14 @@ class Round:
 
         if self.isZiMo:
             return '{0} {1} 局 {2} 本场 '.format(['东', '南', '西', '北'][self.chang], self.ju + 1,
-                                              self.ben) + '{0} 自摸 {1} 点'.format(self.players.playernames[int(self.winner) - 1],
-                                                                                self.point)
+                                              self.ben) + '{0} 自摸 {1} 点'.format(
+                self.players.playernames[int(self.winner) - 1],
+                self.point)
         else:
             return '{0} {1} 局 {2} 本场 '.format(['东', '南', '西', '北'][self.chang], self.ju + 1,
-                                              self.ben) + '{0} 和牌 {1} 点'.format(self.players.playernames[int(self.winner) - 1],
-                                                                                self.point)
+                                              self.ben) + '{0} 和牌 {1} 点'.format(
+                self.players.playernames[int(self.winner) - 1],
+                self.point)
 
 
 class Game:
@@ -122,3 +124,7 @@ class Game:
     def __str__(self):
         for i in self.roundList:
             print(i)
+
+    def print(self):
+        for i in self.roundList:
+            i.print()
