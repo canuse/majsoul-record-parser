@@ -1,12 +1,34 @@
 from enum import Enum
 
 
+class Player:
+    def __init__(self, name, seat, level3, score3, level4, score4):
+        self.level4 = level4
+        self.score4 = score4
+        self.level3 = level3
+        self.score3 = score3
+        self.seat = seat
+        self.name = name
+        self.endScore = 0
+        self.endPoint = 0
+
+    def endGame(self, score, point):
+        self.endScore = score
+        self.endPoint = point
+
+    def __str__(self):
+        return "{0} {1} {2} 四麻：{3}-{4} 三麻：{5}-{6}".format(self.name, self.endPoint, self.endScore, self.level4,
+                                                          self.score4, self.level3, self.score3)
+
+
 class Players:
-    def __init__(self, names=None):
-        if names == None:
-            self.playernames = ['player 1', 'player 2', 'player 3', 'player 4']
-        else:
-            self.playernames = names
+    def __init__(self):
+        self.playernames = ['player 1', 'player 2', 'player 3', 'player 4']
+        self.player = [object(), object(), object(), object()]
+
+    def add(self, name, seat, level3, score3, level4, score4):
+        self.player[seat] = Player(name, seat, level3, score3, level4, score4)
+        self.playernames[seat] = name
 
 
 class Operation(Enum):
@@ -119,7 +141,8 @@ class Round:
 class Game:
     def __init__(self, players: Players):
         self.roundList = []
-        self.players = players.playernames
+        self.players = players
+        self.endPoint = []
 
     def __str__(self):
         for i in self.roundList:

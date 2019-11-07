@@ -1,7 +1,7 @@
 import base64
 
 import requests
-from .record import *
+from record import *
 
 
 class scanner:
@@ -26,6 +26,9 @@ class parser:
     def fetch(self, len=1):
         return self.scanner.fetch(len)
 
+    def isEOF(self):
+        return self.scanner.pos < self.scanner.len
+
     def getVariant(self):
         variant = []
         tmp = self.fetch()[0]
@@ -35,14 +38,26 @@ class parser:
             variant.append(tmp)
         return self.variantToInt(variant)
 
+    def isNegative(self, i):
+        return i == 1 or i // 2 == 1 or i // 4 == 1 or i // 8 == 1 or i // 16 == 1 or i // 32 == 1 or 1 // 64 == 1 or i // 128 == 1 or i // 256 == 1
+
     def variantToInt(self, variant):
         value = 0
+        sign = 1
+        if len(variant) > 5 and self.isNegative(variant[-1]):
+            # work around only, not correct translate
+            for i in range(len(variant)):
+                variant[i] = 255 - variant[i]
+            variant[0] += 1
+            variant[-1] = 0
+            sign = -1
+
         for i in range(len(variant)):
             if variant[i] >= 128:
                 value += (variant[i] - 128) * (128 ** i)
             else:
                 value += variant[i] * (128 ** i)
-        return value
+        return value * sign
 
     def getType(self):
         val = self.fetch()
@@ -59,11 +74,11 @@ class parser:
 
     def skipString(self):
         field, type = self.getType()
-        self.fetch(self.getVariant())
+        return self.fetch(self.getVariant())
 
     def skip(self):
         field, type = self.getType()
-        self.getVariant()
+        return self.getVariant()
 
 
 class parseGame(parser):
@@ -157,7 +172,7 @@ class parseRound(parser):
                     field, type = tsc.getType()
                 handtile.append(ttile)
             roundRecord = Round(chang, ju, ben, handtile, self.players)
-            #print(handtile)
+            # print(handtile)
             field, type = self.getType()
             length = self.getVariant()
             # start game
@@ -209,7 +224,7 @@ class parseRound(parser):
                 roundRecord.point = point
             if ('LiuJu' in data) or ('NoTile' in data):
                 roundRecord.addItem(0, '', -10, 0, 0)
-            #roundRecord.print()
+            # roundRecord.print()
             self.roundRecord.append(roundRecord)
             tmp = self.getType()
             if tmp == None:
@@ -318,32 +333,47 @@ def parseFromBase64(filename):
         raw = f.read()
     data = base64.b64decode(raw)[3:]
     tsc = parser(scanner(data))
-    field, type = tsc.getType()
-    if field == 1 and type == 2:
-        tsc.fetch(tsc.getVariant())
+    tsc.skip()
     field, type = tsc.getType()
     content = tsc.fetch(tsc.getVariant())
     tsc = parser(scanner(content))
     field, type = tsc.getType()
-    namelist = []
 
     content = tsc.fetch(tsc.getVariant())
     tt = parser(scanner(content))
-    tt.skipString()
-    tt.skip()
-    tt.skip()
+    uuid = tt.skipString()
+    startTime = tt.skip()
+    endTime = tt.skip()
     tt.skipString()
     field, type = tt.getType()
+    players = Players()
     while field == 11:
         tdata = tt.fetch(tt.getVariant())
         tt1 = parser(scanner(tdata))
-        tt1.skip()
-        tt1.skip()
+        accountID = tt1.skip()
+        seat = tt1.skip()
         field, type = tt1.getType()
         name = tt1.fetch(tt1.getVariant()).decode()
-        namelist.append(name)
+        tt1.skip()
+        tt1.skipString()
+        tt1.skip()
+        tt2 = parser(scanner(tt1.skipString()))
+        level4 = tt2.skip()
+        score4 = tt2.skip()
+        tt2 = parser(scanner(tt1.skipString()))
+        level3 = tt2.skip()
+        score3 = tt2.skip()
+        players.add(name, seat, level3, score3, level4, score4)
         field, type = tt.getType()
-    players = Players(namelist)
+    result = tt.fetch(tt.getVariant())
+    resultPar = parser(scanner(result))
+    while resultPar.isEOF():
+        playerItem = parser(scanner(resultPar.skipString()))
+        seat = playerItem.skip()
+        endPoint = playerItem.skip() / 1000
+        endScore = playerItem.skip()
+        players.player[seat].endGame(endScore, endPoint)
+
     field, type = tsc.getType()
     length = tsc.getVariant()
     if length != 0 and field == 5:
@@ -360,6 +390,6 @@ def parseFromBase64(filename):
 
 
 if __name__ == "__main__":
-    a=parseFromBase64('../test/b642.txt')
+    a = parseFromBase64('../test/b642.txt')
     a.print()
     # parseFromDisk('../test/191023-b677c111-742f-4cd7-a7ee-31efef2b1928')
