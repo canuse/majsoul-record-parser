@@ -42,7 +42,6 @@ class simulator:
             self.isrichi = True
         if item.playername == self.playername:
             xh, choices = self.calculateBest()
-            self.handtile.remove(item.tile)
             allchoice = [i[0] for i in choices]
             goodchoice = []
             for i in choices:
@@ -74,6 +73,8 @@ class simulator:
                 self.game.round.append(tround)
                 print('wrong')
             # todo check
+
+            self.handtile.remove(item.tile)
             return
         self.visibleTile[Tile.tileToValue(item.tile)] += 1
 
