@@ -49,3 +49,11 @@ class Tile:
             return str(value - 20) + 's'
         else:
             return str(value - 30) + 'z'
+
+    @staticmethod
+    def nextTile(tile):
+        return str(int(tile[0]) + 1) + tile[1]
+
+    @staticmethod
+    def prevTile(tile):
+        return str(int(tile[0]) - 1) + tile[1]
