@@ -3,6 +3,7 @@ import base64
 import requests
 
 from majsoul.record import *
+from majsoul.tile import Tile
 
 
 class scanner:
@@ -301,9 +302,9 @@ class parseitem(parser):
             if tt == 0:
                 tile2 = self.skipString().decode()
                 tile3 = self.skipString().decode()
-                if int(tile3[0]) > int(tile2[0]):
+                if Tile.tileToValue(tile3) > Tile.tileToValue(tile2):
                     tts = 3  # a a+1 eat a+2
-                elif int(tile3[0]) < int(tile[0]):
+                elif Tile.tileToValue(tile3) < Tile.tileToValue(tile):
                     tts = 1  # a+1 a+2 eat a
                 else:
                     tts = 2
@@ -322,7 +323,7 @@ class parseitem(parser):
             '''
             op = -tt - 2
             field, type = self.getType()
-            tile = self.fetch(self.getVariant())
+            tile = self.fetch(self.getVariant()).decode()
             source = 0
             isliqi = 0
 
