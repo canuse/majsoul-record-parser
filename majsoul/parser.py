@@ -191,8 +191,8 @@ class parseRound(parser):
             while ('Discard' in data) or ('Deal' in data) or ('Chi' in data) or ('Gang' in data) or ('BaBei' in data):
                 tsc.getType()
                 thisItem = parseitem(tsc.fetch(tsc.getVariant()), data)
-                player, tile, op, source, isliqi = thisItem.parse()
-                roundRecord.addItem(player, tile, op, source, isliqi)
+                player, tile, op, source, isliqi, tts = thisItem.parse()
+                roundRecord.addItem(player, tile, op, source, isliqi, tts)
                 field, type = self.getType()
                 length = self.getVariant()
                 tsc = parser(scanner(self.fetch(length)))
@@ -270,6 +270,7 @@ class parseitem(parser):
             self.type = 10
 
     def parse(self):
+        tts = None
         if self.type == 10:
             field, type = self.getType()
             player = self.getVariant() + 1
@@ -297,8 +298,19 @@ class parseitem(parser):
             op = -tt - 1
             field, type = self.getType()
             tile = self.fetch(self.getVariant()).decode()
+            if tt == 0:
+                tile2 = self.skipString().decode()
+                tile3 = self.skipString().decode()
+                if int(tile3[0]) > int(tile2[0]):
+                    tts = 3  # a a+1 eat a+2
+                elif int(tile3[0]) < int(tile[0]):
+                    tts = 1  # a+1 a+2 eat a
+                else:
+                    tts = 2
+                tile = tile3
             source = 0
             isliqi = 0
+
         else:
             field, type = self.getType()
             player = self.getVariant() + 1
@@ -314,7 +326,7 @@ class parseitem(parser):
             source = 0
             isliqi = 0
 
-        return player, tile, op, source, isliqi
+        return player, tile, op, source, isliqi, tts
 
 
 '''
@@ -400,6 +412,6 @@ def parseFromBase64(filename):
 
 
 if __name__ == "__main__":
-    a = parseFromBase64('../test/b64.txt')
+    a = parseFromBase64('../test/b643.txt')
     a.print()
     # parseFromDisk('../test/191023-b677c111-742f-4cd7-a7ee-31efef2b1928')

@@ -61,7 +61,7 @@ class Position(Enum):
 
 
 class Item:
-    def __init__(self, player, tile, op, source, isliqi, players: Players):
+    def __init__(self, player, tile, op, source, isliqi, players: Players, eatstatus=None):
         """
         :param player: 1.east 2.south 3.west 4.north
         :param tile: string
@@ -73,6 +73,7 @@ class Item:
         self.tile = tile
         self.op = Operation(op)
         self.isliqi = isliqi
+        self.eatstatus = eatstatus
 
     def __str__(self):
         if self.op.value == 1 or self.op.value == 2:
@@ -85,8 +86,8 @@ class Item:
         elif self.op.value == -10:
             return "流局"
         else:
-            return "player {0} {1} tile {2}".format(self.playername, self.op,
-                                                    self.tile)
+            return "player {0} {1} tile {2} {3}".format(self.playername, self.op,
+                                                        self.tile, self.eatstatus if self.eatstatus != None else '')
 
 
 class Round:
@@ -102,8 +103,8 @@ class Round:
         self.players = players
         self.paishan = []
 
-    def addItem(self, player, tile, op, source, isliqi):
-        self.itemList.append(Item(player, tile, op, source, isliqi, self.players))
+    def addItem(self, player, tile, op, source, isliqi, tts=None):
+        self.itemList.append(Item(player, tile, op, source, isliqi, self.players, tts))
 
     def endRound(self, winner, looser, isZiMo, point):
         self.winner = Position(winner)
