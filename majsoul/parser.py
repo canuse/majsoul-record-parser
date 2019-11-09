@@ -1,6 +1,7 @@
 import base64
 
 import requests
+
 from majsoul.record import *
 
 
@@ -82,13 +83,14 @@ class parser:
 
 
 class parseGame(parser):
-    def __init__(self, data, players):
+    def __init__(self, data, players, uuid=None):
         self.protoData = data
         self.scanner = scanner(self.protoData)
         super().__init__(self.scanner)
         self.gameRecord = []
         self.game = Game(players)
         self.players = players
+        self.game.uuid = uuid.decode()
 
     def parse(self):
         field, type = self.getType()
@@ -172,6 +174,12 @@ class parseRound(parser):
                     field, type = tsc.getType()
                 handtile.append(ttile)
             roundRecord = Round(chang, ju, ben, handtile, self.players)
+            if field == 12:
+                tsc.fetch(tsc.getVariant())
+                tsc.skipString()
+                paishan = tsc.skipString().decode()
+                for i in range(int(0.5 * len(paishan))):
+                    roundRecord.paishan.append(paishan[2 * i:2 * i + 2])
             # print(handtile)
             field, type = self.getType()
             length = self.getVariant()
@@ -270,7 +278,7 @@ class parseitem(parser):
             field, type = self.getType()
             player = self.getVariant() + 1
             field, type = self.getType()
-            tile = self.fetch(self.getVariant())
+            tile = self.fetch(self.getVariant()).decode()
             field, type = self.getType()
             isliqi = self.getVariant()
             field, type = self.getType()
@@ -288,7 +296,7 @@ class parseitem(parser):
             '''
             op = -tt - 1
             field, type = self.getType()
-            tile = self.fetch(self.getVariant())
+            tile = self.fetch(self.getVariant()).decode()
             source = 0
             isliqi = 0
         else:
@@ -309,6 +317,7 @@ class parseitem(parser):
         return player, tile, op, source, isliqi
 
 
+'''
 def parseFromURL(url):
     uuid = url.split('paipu=')[-1].split('_')[0]
     r = requests.get('https://mj-srv-3.majsoul.com:7343/majsoul/game_record/' + uuid)
@@ -326,6 +335,7 @@ def parseFromDisk(filename):
     players = Players()
     a = parseGame(data, players)
     return a.parse()
+'''
 
 
 def parseFromBase64(filename):
@@ -376,20 +386,20 @@ def parseFromBase64(filename):
 
     field, type = tsc.getType()
     length = tsc.getVariant()
-    if length != 0 and field == 5:
+    if length > 2000:
         data = tsc.fetch(length)
-        a = parseGame(data, players)
+        a = parseGame(data, players, uuid)
         return a.parse()
     else:
         tsc.fetch(length)
         field, type = tsc.getType()
         data = tsc.fetch(tsc.getVariant()).decode()
         r = requests.get(data)
-        a = parseGame(r.content, players)
+        a = parseGame(r.content, players, uuid)
         return a.parse()
 
 
 if __name__ == "__main__":
-    a = parseFromBase64('../test/b642.txt')
+    a = parseFromBase64('../test/b64.txt')
     a.print()
     # parseFromDisk('../test/191023-b677c111-742f-4cd7-a7ee-31efef2b1928')

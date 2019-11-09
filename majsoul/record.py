@@ -25,10 +25,12 @@ class Players:
     def __init__(self):
         self.playernames = ['player 1', 'player 2', 'player 3', 'player 4']
         self.player = [object(), object(), object(), object()]
+        self.num = 0
 
     def add(self, name, seat, level3, score3, level4, score4):
         self.player[seat] = Player(name, seat, level3, score3, level4, score4)
         self.playernames[seat] = name
+        self.num += 1
 
 
 class Operation(Enum):
@@ -98,6 +100,7 @@ class Round:
         self.point = None
         self.itemList = []
         self.players = players
+        self.paishan = []
 
     def addItem(self, player, tile, op, source, isliqi):
         self.itemList.append(Item(player, tile, op, source, isliqi, self.players))
@@ -143,10 +146,11 @@ class Game:
         self.roundList = []
         self.players = players
         self.endPoint = []
+        self.uuid = None
 
     def __str__(self):
         for i in self.roundList:
-            print(i)
+            return self.uuid
 
     def print(self):
         for i in self.roundList:
