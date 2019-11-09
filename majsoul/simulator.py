@@ -1,4 +1,5 @@
 from majsoul.record import *
+from majsoul.parser import *
 from majsoul.tile import *
 
 
@@ -17,6 +18,9 @@ class simulator:
 
     def initround(self, roundData: Round):
         self.handtile = roundData.handTiles[self.posInUser]
+        for i in range(len(self.handtile)):
+            if self.handtile[i] in ['0s','0m','0p']:
+                self.handtile[i]=Tile.valueToTile(Tile.tileToValue(self.handtile[i]))
         self.visibleTile = [0 for i in range(38)]
         self.doraNum = 1
         self.paishan = roundData.paishan
@@ -28,18 +32,23 @@ class simulator:
             self.visibleTile[Tile.tileToValue(self.paishan[-5])] += 1
 
     def deal(self, item: Item):
-        if item.playername != self.playername:
-            return
-        self.handtile.append(item.tile)
-        self.visibleTile[Tile.tileToValue(item.tile)] += 1
-
-    def discard(self, item: Item):
         if item.playername == self.playername:
             self.handtile.remove(item.tile)
             # todo check
             # todo richi
             return
         self.visibleTile[Tile.tileToValue(item.tile)] += 1
+
+    def discard(self, item: Item):
+        if item.playername != self.playername:
+            return
+        if item.tile in ['0s', '0m', '0p']:
+            self.handtile.append(Tile.valueToTile(Tile.tileToValue(item.tile)))
+        else:
+            self.handtile.append(item.tile)
+        self.handtile.sort(key=Tile.tileToValue)
+        self.visibleTile[Tile.tileToValue(item.tile)] += 1
+
 
     def babei(self, item: Item):
         if item.playername == self.playername:
@@ -118,21 +127,31 @@ class simulator:
 
     def simulateRound(self, roundData: Round):
         self.initround(roundData)
+        print('new round!!!')
         for i in roundData.itemList:
-            i: Item
-            if i.op == 1:
+            print(self.handtile)
+            #print(self.visibleTile)
+            if i.op.value == 1:
                 self.deal(i)
-            if i.op == 2:
+            if i.op.value == 2:
                 self.discard(i)
-            if i.op == 10:
+            if i.op.value == 10:
                 self.babei(i)
-            if i.op == -1:
+            if i.op.value == -1:
                 self.chi(i)
-            if i.op == -2:
+            if i.op.value == -2:
                 self.peng(i)
-            if i.op == -3:
+            if i.op.value == -3:
                 self.gang(i)
-            if i.op == -4:
+            if i.op.value == -4:
                 self.addGang(i)
-            if i.op == -5:
+            if i.op.value == -5:
                 self.anGang(i)
+            if i.op.value == 0 or i.op.value == -10:
+                pass
+
+if __name__ == "__main__":
+    a = parseFromBase64('../test/b643.txt')
+    a.print()
+    b=simulator(a,'||||||')
+    b.simulate()
