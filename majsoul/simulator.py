@@ -37,6 +37,7 @@ class simulator:
         if item.playername == self.playername:
             self.handtile.remove(item.tile)
             # todo check
+            # todo richi
             return
         self.visibleTile[Tile.tileToValue(item.tile)] += 1
 
@@ -44,6 +45,76 @@ class simulator:
         if item.playername == self.playername:
             return
         self.visibleTile[34] += 1
+
+    def chi(self, item: Item):
+        if item.playername == self.playername:
+            if item.eatstatus == 1:
+                self.handtile.remove(Tile.nextTile(item.tile))
+                self.handtile.remove(Tile.nextTile(Tile.nextTile(item.tile)))
+            if item.eatstatus == 2:
+                self.handtile.remove(Tile.nextTile(item.tile))
+                self.handtile.remove(Tile.prevTile(item.tile))
+            if item.eatstatus == 3:
+                self.handtile.remove(Tile.prevTile(item.tile))
+                self.handtile.remove(Tile.prevTile(Tile.prevTile(item.tile)))
+            return
+        else:
+            if item.eatstatus == 1:
+                self.visibleTile[Tile.tileToValue(Tile.nextTile(item.tile))] += 1
+                self.visibleTile[Tile.tileToValue(Tile.nextTile(Tile.nextTile(item.tile)))] += 1
+            if item.eatstatus == 2:
+                self.visibleTile[Tile.tileToValue(Tile.nextTile(item.tile))] += 1
+                self.visibleTile[Tile.tileToValue(Tile.prevTile(item.tile))] += 1
+            if item.eatstatus == 3:
+                self.visibleTile[Tile.tileToValue(Tile.prevTile(item.tile))] += 1
+                self.visibleTile[Tile.tileToValue(Tile.prevTile(Tile.prevTile(item.tile)))] += 1
+
+    def peng(self, item: Item):
+        if item.playername == self.playername:
+            self.handtile.remove(item.tile)
+            self.handtile.remove(item.tile)
+            return
+        self.visibleTile[Tile.tileToValue(item.tile)] += 2
+
+    def gang(self, item: Item):
+        self.doraNum += 1
+        if self.playernum == 3:
+            self.visibleTile[Tile.tileToValue(self.paishan[-7 - 2 * self.doraNum])] += 1
+        else:
+            self.visibleTile[Tile.tileToValue(self.paishan[-3 - 2 * self.doraNum])] += 1
+        if item.playername == self.playername:
+            self.handtile.remove(item.tile)
+            self.handtile.remove(item.tile)
+            self.handtile.remove(item.tile)
+            return
+        self.visibleTile[Tile.tileToValue(item.tile)] += 3
+
+    def addGang(self, item: Item):
+        self.doraNum += 1
+        if self.playernum == 3:
+            self.visibleTile[Tile.tileToValue(self.paishan[-7 - 2 * self.doraNum])] += 1
+        else:
+            self.visibleTile[Tile.tileToValue(self.paishan[-3 - 2 * self.doraNum])] += 1
+        if item.playername == self.playername:
+            self.handtile.remove(item.tile)
+            return
+        else:
+            self.visibleTile[Tile.tileToValue(item.tile)] += 3
+
+    def anGang(self, item: Item):
+        self.doraNum += 1
+        if self.playernum == 3:
+            self.visibleTile[Tile.tileToValue(self.paishan[-7 - 2 * self.doraNum])] += 1
+        else:
+            self.visibleTile[Tile.tileToValue(self.paishan[-3 - 2 * self.doraNum])] += 1
+        if item.playername == self.playername:
+            self.handtile.remove(item.tile)
+            self.handtile.remove(item.tile)
+            self.handtile.remove(item.tile)
+            self.handtile.remove(item.tile)
+            return
+        else:
+            self.visibleTile[Tile.tileToValue(item.tile)] += 4
 
     def simulateRound(self, roundData: Round):
         self.initround(roundData)
@@ -55,3 +126,13 @@ class simulator:
                 self.discard(i)
             if i.op == 10:
                 self.babei(i)
+            if i.op == -1:
+                self.chi(i)
+            if i.op == -2:
+                self.peng(i)
+            if i.op == -3:
+                self.gang(i)
+            if i.op == -4:
+                self.addGang(i)
+            if i.op == -5:
+                self.anGang(i)
