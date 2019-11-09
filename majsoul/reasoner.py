@@ -1,4 +1,6 @@
 import numpy as np
+import time
+from majsoul.tile import *
 
 
 def relu(a, b):
@@ -61,8 +63,8 @@ class reasoner:
         # print(axh,bxh,cxh,sig_num, quetou, bi_num, tri_num)
         return minxh
 
-    def caipai(self, tileList):
-        self.xh = 100
+    def caipai(self, tileList, xhlimit=100):
+        self.xh = xhlimit
         self.saveList = tileList
         tlist = np.array(tileList)
         self._caipaidfs(0, 0, 0, 0, tlist)
@@ -108,3 +110,30 @@ class reasoner:
         # danzhang
         if length >= 1:
             self._caipaidfs(singleNumber + 1, quetou, doubleNumber, tripleNumber, tileList[1:])
+
+    def findJinZhang(self, tileList, currentxh):
+        jinzhangList = []
+        for i in range(38):
+            if i in [0, 10, 20, 30]:
+                continue
+            if tileList.count(i)==4:
+                continue
+            tileList.append(i)
+            nxh = self.caipai(tileList)
+            tileList = tileList[:-1]
+            if nxh < currentxh:
+                jinzhangList.append(i)
+        return jinzhangList
+
+    def discardTileList(self, tileList):
+        xh = self.caipai(tileList)
+        jzd = {}
+        for i in np.unique(tileList):
+            #print(Tile.valueToTile(i))
+            tileList.remove(i)
+            tmp=self.findJinZhang(tileList.copy(), xh)
+            if tmp!=[]:
+                jzd[Tile.valueToTile(i)] = tmp
+            tileList.append(i)
+            tileList.sort()
+        return jzd
