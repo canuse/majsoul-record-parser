@@ -1,6 +1,6 @@
-from majsoul.record import *
 from majsoul.parser import *
-from majsoul.tile import *
+from majsoul.reasoner import *
+from majsoul.template import *
 
 
 class simulator:
@@ -11,6 +11,9 @@ class simulator:
         self.posInUser = self.users.index(self.playername)
         self.gametype = 0
         self.playernum = record.players.num
+        self.isrichi = False
+        self.report = [games(record.uuid)]
+        self.melds = []
 
     def simulate(self):
         for i in self.record.roundList:
@@ -19,11 +22,14 @@ class simulator:
     def initround(self, roundData: Round):
         self.handtile = roundData.handTiles[self.posInUser]
         for i in range(len(self.handtile)):
-            if self.handtile[i] in ['0s','0m','0p']:
-                self.handtile[i]=Tile.valueToTile(Tile.tileToValue(self.handtile[i]))
+            if self.handtile[i] in ['0s', '0m', '0p']:
+                self.handtile[i] = Tile.valueToTile(Tile.tileToValue(self.handtile[i]))
         self.visibleTile = [0 for i in range(38)]
         self.doraNum = 1
         self.paishan = roundData.paishan
+        self.isrichi = False
+        self.melds = []
+        self.game = game(str(roundData))
         for i in self.handtile:
             self.visibleTile[Tile.tileToValue(i)] += 1
         if self.playernum == 3:
@@ -32,10 +38,42 @@ class simulator:
             self.visibleTile[Tile.tileToValue(self.paishan[-5])] += 1
 
     def deal(self, item: Item):
+        if item.isliqi == 1:
+            self.isrichi = True
         if item.playername == self.playername:
+            xh, choices = self.calculateBest()
             self.handtile.remove(item.tile)
+            allchoice = [i[0] for i in choices]
+            goodchoice = []
+            for i in choices:
+                if i[1] == choices[0][1]:
+                    goodchoice.append(i[0])
+            if item.tile in allchoice:
+                invisibleTiles = 0
+                for i in range(38):
+                    if i in [0, 10, 20, 30]:
+                        pass
+                    invisibleTiles += 4 - self.visibleTile[i]
+                bestRateP = choices[0][1]
+                yourRateP = choices[allchoice.index(item.tile)][1]
+                bestRate = 1 - (1 - bestRateP / invisibleTiles) * (1 - bestRateP / (invisibleTiles - 1))
+                yourRate = 1 - (1 - yourRateP / invisibleTiles) * (1 - yourRateP / (invisibleTiles - 1))
+                wrong_rate = bestRate / yourRate
+                tround = round(self.isrichi, wrong_rate, self.melds, [Tile.tileToUtf(i) for i in self.handtile],
+                               Tile.tileToUtf(item.tile), [Tile.tileToUtf(i) for i in allchoice],
+                               [Tile.tileToUtf(i) for i in goodchoice], choices[allchoice.index(item.tile)][2],
+                               choices[0][2], len(self.game.round) + 1)
+                self.game.round.append(tround)
+                print(
+                    'Your choice:{0},{1} Best choices:{2},{3}'.format(item.tile, choices[allchoice.index(item.tile)][1],
+                                                                      choices[0][0], choices[0][1]))
+            else:
+                tround = round(self.isrichi, 1, self.melds, [Tile.tileToUtf(i) for i in self.handtile],
+                               Tile.tileToUtf(item.tile), [Tile.tileToUtf(i) for i in allchoice],
+                               [Tile.tileToUtf(i) for i in goodchoice], xh, choices[0][2], len(self.game.round) + 1)
+                self.game.round.append(tround)
+                print('wrong')
             # todo check
-            # todo richi
             return
         self.visibleTile[Tile.tileToValue(item.tile)] += 1
 
@@ -49,9 +87,9 @@ class simulator:
         self.handtile.sort(key=Tile.tileToValue)
         self.visibleTile[Tile.tileToValue(item.tile)] += 1
 
-
     def babei(self, item: Item):
         if item.playername == self.playername:
+            self.melds.append((Tile.tileToUtf('4z')))
             return
         self.visibleTile[34] += 1
 
@@ -60,12 +98,18 @@ class simulator:
             if item.eatstatus == 1:
                 self.handtile.remove(Tile.nextTile(item.tile))
                 self.handtile.remove(Tile.nextTile(Tile.nextTile(item.tile)))
+                self.melds.append((Tile.tileToUtf(item.tile), Tile.tileToUtf(Tile.nextTile(item.tile)),
+                                   Tile.tileToUtf(Tile.nextTile(Tile.nextTile(item.tile)))))
             if item.eatstatus == 2:
                 self.handtile.remove(Tile.nextTile(item.tile))
                 self.handtile.remove(Tile.prevTile(item.tile))
+                self.melds.append((Tile.tileToUtf(item.tile), Tile.tileToUtf(Tile.nextTile(item.tile)),
+                                   Tile.tileToUtf(Tile.prevTile(item.tile))))
             if item.eatstatus == 3:
                 self.handtile.remove(Tile.prevTile(item.tile))
                 self.handtile.remove(Tile.prevTile(Tile.prevTile(item.tile)))
+                self.melds.append((Tile.tileToUtf(item.tile), Tile.tileToUtf(Tile.prevTile(item.tile)),
+                                   Tile.tileToUtf(Tile.prevTile(Tile.prevTile(item.tile)))))
             return
         else:
             if item.eatstatus == 1:
@@ -82,6 +126,7 @@ class simulator:
         if item.playername == self.playername:
             self.handtile.remove(item.tile)
             self.handtile.remove(item.tile)
+            self.melds.append((Tile.tileToUtf(item.tile), Tile.tileToUtf(item.tile), Tile.tileToUtf(item.tile)))
             return
         self.visibleTile[Tile.tileToValue(item.tile)] += 2
 
@@ -95,6 +140,8 @@ class simulator:
             self.handtile.remove(item.tile)
             self.handtile.remove(item.tile)
             self.handtile.remove(item.tile)
+            self.melds.append((Tile.tileToUtf(item.tile), Tile.tileToUtf(item.tile), Tile.tileToUtf(item.tile),
+                               Tile.tileToUtf(item.tile)))
             return
         self.visibleTile[Tile.tileToValue(item.tile)] += 3
 
@@ -106,6 +153,9 @@ class simulator:
             self.visibleTile[Tile.tileToValue(self.paishan[-3 - 2 * self.doraNum])] += 1
         if item.playername == self.playername:
             self.handtile.remove(item.tile)
+            self.melds.append((Tile.tileToUtf(item.tile), Tile.tileToUtf(item.tile), Tile.tileToUtf(item.tile)))
+            self.melds.append((Tile.tileToUtf(item.tile), Tile.tileToUtf(item.tile), Tile.tileToUtf(item.tile),
+                               Tile.tileToUtf(item.tile)))
             return
         else:
             self.visibleTile[Tile.tileToValue(item.tile)] += 3
@@ -121,16 +171,30 @@ class simulator:
             self.handtile.remove(item.tile)
             self.handtile.remove(item.tile)
             self.handtile.remove(item.tile)
+            self.melds.append(
+                (Tile.tileToUtf('8z'), Tile.tileToUtf(item.tile), Tile.tileToUtf(item.tile), Tile.tileToUtf('8z')))
             return
         else:
             self.visibleTile[Tile.tileToValue(item.tile)] += 4
+
+    def calculateBest(self):
+        a = reasoner()
+        choices, xh = a.discardTileList([Tile.tileToValue(i) for i in self.handtile])
+        bestChoices = []
+        for i in choices.keys():
+            tmp = 0
+            for j in choices[i][0]:
+                tmp += 4 - self.visibleTile[j]
+            bestChoices.append((i, tmp, choices[i][1]))
+        bestChoices.sort(key=lambda x: x[1], reverse=True)
+        return xh, bestChoices
 
     def simulateRound(self, roundData: Round):
         self.initround(roundData)
         print('new round!!!')
         for i in roundData.itemList:
-            print(self.handtile)
-            #print(self.visibleTile)
+            # print(self.handtile)
+            # print(self.visibleTile)
             if i.op.value == 1:
                 self.deal(i)
             if i.op.value == 2:
@@ -148,10 +212,11 @@ class simulator:
             if i.op.value == -5:
                 self.anGang(i)
             if i.op.value == 0 or i.op.value == -10:
-                pass
+                self.report[0].game.append(self.game)
+
 
 if __name__ == "__main__":
     a = parseFromBase64('../test/b643.txt')
-    a.print()
-    b=simulator(a,'||||||')
+    # a.print()
+    b = simulator(a, '||||||')
     b.simulate()

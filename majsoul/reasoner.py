@@ -1,5 +1,5 @@
 import numpy as np
-import time
+
 from majsoul.tile import *
 
 
@@ -113,27 +113,28 @@ class reasoner:
 
     def findJinZhang(self, tileList, currentxh):
         jinzhangList = []
+        nxh = 100
         for i in range(38):
             if i in [0, 10, 20, 30]:
                 continue
-            if tileList.count(i)==4:
+            if tileList.count(i) == 4:
                 continue
             tileList.append(i)
             nxh = self.caipai(tileList)
             tileList = tileList[:-1]
             if nxh < currentxh:
                 jinzhangList.append(i)
-        return jinzhangList
+        return jinzhangList, nxh
 
     def discardTileList(self, tileList):
         xh = self.caipai(tileList)
         jzd = {}
         for i in np.unique(tileList):
-            #print(Tile.valueToTile(i))
+            # print(Tile.valueToTile(i))
             tileList.remove(i)
-            tmp=self.findJinZhang(tileList.copy(), xh)
-            if tmp!=[]:
-                jzd[Tile.valueToTile(i)] = tmp
+            tmp, nxh = self.findJinZhang(tileList.copy(), xh)
+            if tmp != []:
+                jzd[Tile.valueToTile(i)] = (tmp,nxh)
             tileList.append(i)
             tileList.sort()
-        return jzd
+        return jzd, xh
