@@ -57,7 +57,7 @@ class simulator:
                 yourRateP = choices[allchoice.index(item.tile)][1]
                 bestRate = 1 - (1 - bestRateP / invisibleTiles) * (1 - bestRateP / (invisibleTiles - 1))
                 yourRate = 1 - (1 - yourRateP / invisibleTiles) * (1 - yourRateP / (invisibleTiles - 1))
-                wrong_rate = bestRate / yourRate
+                wrong_rate = 1 - yourRate / bestRate
                 tround = round(self.isrichi, wrong_rate, self.melds, [Tile.tileToUtf(i) for i in self.handtile],
                                Tile.tileToUtf(item.tile), [Tile.tileToUtf(i) for i in allchoice],
                                [Tile.tileToUtf(i) for i in goodchoice], choices[allchoice.index(item.tile)][2],
