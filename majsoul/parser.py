@@ -275,7 +275,7 @@ class parseitem(parser):
         if self.type == 10:
             field, type = self.getType()
             player = self.getVariant() + 1
-            return player, '', 10, 0, 0
+            return player, '', 10, 0, 0, 0
         if self.type == 1 or self.type == 2:
             field, type = self.getType()
             player = self.getVariant() + 1
