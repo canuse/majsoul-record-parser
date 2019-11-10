@@ -18,7 +18,10 @@ class game:
 
 class round:
     def __init__(self, somebody_richii, wrong_rate, melds, hand, your_choice, expected_choice, good_choice, yxh, xh,
-                 xun):
+                 xun, tiles, ytiles, allstat):
+        self.allstat = allstat
+        self.ytiles = ytiles
+        self.tiles = tiles
         self.yxh = yxh
         self.xh = xh
         self.good_choice = good_choice

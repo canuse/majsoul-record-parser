@@ -47,34 +47,68 @@ class simulator:
             for i in choices:
                 if i[1] == choices[0][1]:
                     goodchoice.append(i[0])
-            if item.tile in allchoice:
+            cc = []
+            for i in choices:
+                tmp = ''
+                for j in i[-1]:
+                    tmp = tmp + Tile.tileToUtf(Tile.valueToTile(j))
+                cc.append((Tile.tileToUtf(i[0]), i[1], i[2], tmp))
+            if Tile.valueToTile(Tile.tileToValue(item.tile)) in allchoice:
                 invisibleTiles = 0
                 for i in range(38):
                     if i in [0, 10, 20, 30]:
-                        pass
+                        continue
+                    if self.playernum == 3:
+                        if i in [2, 3, 4, 5, 6, 7, 8]:
+                            continue
                     invisibleTiles += 4 - self.visibleTile[i]
                 bestRateP = choices[0][1]
-                yourRateP = choices[allchoice.index(item.tile)][1]
+                yourRateP = choices[allchoice.index(Tile.valueToTile(Tile.tileToValue(item.tile)))][1]
                 bestRate = 1 - (1 - bestRateP / invisibleTiles) * (1 - bestRateP / (invisibleTiles - 1))
                 yourRate = 1 - (1 - yourRateP / invisibleTiles) * (1 - yourRateP / (invisibleTiles - 1))
                 wrong_rate = 1 - yourRate / bestRate
-                tround = round(self.isrichi, wrong_rate, self.melds, [Tile.tileToUtf(i) for i in self.handtile],
+                melds = []
+                for i in self.melds:
+                    melds.extend(i)
+                ht = ''
+                for i in self.handtile:
+                    ht = ht + Tile.tileToUtf(i)
+
+                tround = round(self.isrichi, wrong_rate, melds, ht,
                                Tile.tileToUtf(item.tile), [Tile.tileToUtf(i) for i in allchoice],
-                               [Tile.tileToUtf(i) for i in goodchoice], choices[allchoice.index(item.tile)][2],
-                               choices[0][2], len(self.game.round) + 1)
+                               [Tile.tileToUtf(i) for i in goodchoice],
+                               choices[allchoice.index(Tile.valueToTile(Tile.tileToValue(item.tile)))][2],
+                               choices[0][2], len(self.game.round) + 1, bestRateP, yourRateP, cc)
                 self.game.round.append(tround)
                 print(
-                    'Your choice:{0},{1} Best choices:{2},{3}'.format(item.tile, choices[allchoice.index(item.tile)][1],
+                    'Your choice:{0},{1} Best choices:{2},{3}'.format(item.tile, choices[
+                        allchoice.index(Tile.valueToTile(Tile.tileToValue(item.tile)))][1],
                                                                       choices[0][0], choices[0][1]))
             else:
-                tround = round(self.isrichi, 1, self.melds, [Tile.tileToUtf(i) for i in self.handtile],
+                invisibleTiles = 0
+                for i in range(38):
+                    if i in [0, 10, 20, 30]:
+                        continue
+                    if self.playernum == 3:
+                        if i in [2, 3, 4, 5, 6, 7, 8]:
+                            continue
+                    invisibleTiles += 4 - self.visibleTile[i]
+                bestRateP = choices[0][1]
+                melds = []
+                for i in self.melds:
+                    melds.extend(i)
+                ht = ''
+                for i in self.handtile:
+                    ht = ht + Tile.tileToUtf(i)
+                tround = round(self.isrichi, 1, melds, ht,
                                Tile.tileToUtf(item.tile), [Tile.tileToUtf(i) for i in allchoice],
-                               [Tile.tileToUtf(i) for i in goodchoice], xh, choices[0][2], len(self.game.round) + 1)
+                               [Tile.tileToUtf(i) for i in goodchoice], xh, choices[0][2], len(self.game.round) + 1,
+                               bestRateP, -1, cc)
                 self.game.round.append(tround)
                 print('wrong')
             # todo check
-
-            self.handtile.remove(item.tile)
+            print(item.tile, self.handtile)
+            self.handtile.remove(Tile.valueToTile(Tile.tileToValue(item.tile)))
             return
         self.visibleTile[Tile.tileToValue(item.tile)] += 1
 
@@ -84,12 +118,13 @@ class simulator:
         if item.tile in ['0s', '0m', '0p']:
             self.handtile.append(Tile.valueToTile(Tile.tileToValue(item.tile)))
         else:
-            self.handtile.append(item.tile)
+            self.handtile.append(Tile.valueToTile(Tile.tileToValue(item.tile)))
         self.handtile.sort(key=Tile.tileToValue)
         self.visibleTile[Tile.tileToValue(item.tile)] += 1
 
     def babei(self, item: Item):
         if item.playername == self.playername:
+            self.handtile.remove('4z')
             self.melds.append((Tile.tileToUtf('4z')))
             return
         self.visibleTile[34] += 1
@@ -125,8 +160,8 @@ class simulator:
 
     def peng(self, item: Item):
         if item.playername == self.playername:
-            self.handtile.remove(item.tile)
-            self.handtile.remove(item.tile)
+            self.handtile.remove(Tile.valueToTile(Tile.tileToValue(item.tile)))
+            self.handtile.remove(Tile.valueToTile(Tile.tileToValue(item.tile)))
             self.melds.append((Tile.tileToUtf(item.tile), Tile.tileToUtf(item.tile), Tile.tileToUtf(item.tile)))
             return
         self.visibleTile[Tile.tileToValue(item.tile)] += 2
@@ -138,9 +173,9 @@ class simulator:
         else:
             self.visibleTile[Tile.tileToValue(self.paishan[-3 - 2 * self.doraNum])] += 1
         if item.playername == self.playername:
-            self.handtile.remove(item.tile)
-            self.handtile.remove(item.tile)
-            self.handtile.remove(item.tile)
+            self.handtile.remove(Tile.valueToTile(Tile.tileToValue(item.tile)))
+            self.handtile.remove(Tile.valueToTile(Tile.tileToValue(item.tile)))
+            self.handtile.remove(Tile.valueToTile(Tile.tileToValue(item.tile)))
             self.melds.append((Tile.tileToUtf(item.tile), Tile.tileToUtf(item.tile), Tile.tileToUtf(item.tile),
                                Tile.tileToUtf(item.tile)))
             return
@@ -153,8 +188,8 @@ class simulator:
         else:
             self.visibleTile[Tile.tileToValue(self.paishan[-3 - 2 * self.doraNum])] += 1
         if item.playername == self.playername:
-            self.handtile.remove(item.tile)
-            self.melds.append((Tile.tileToUtf(item.tile), Tile.tileToUtf(item.tile), Tile.tileToUtf(item.tile)))
+            self.handtile.remove(Tile.valueToTile(Tile.tileToValue(item.tile)))
+            self.melds.remove((Tile.tileToUtf(item.tile), Tile.tileToUtf(item.tile), Tile.tileToUtf(item.tile)))
             self.melds.append((Tile.tileToUtf(item.tile), Tile.tileToUtf(item.tile), Tile.tileToUtf(item.tile),
                                Tile.tileToUtf(item.tile)))
             return
@@ -168,10 +203,10 @@ class simulator:
         else:
             self.visibleTile[Tile.tileToValue(self.paishan[-3 - 2 * self.doraNum])] += 1
         if item.playername == self.playername:
-            self.handtile.remove(item.tile)
-            self.handtile.remove(item.tile)
-            self.handtile.remove(item.tile)
-            self.handtile.remove(item.tile)
+            self.handtile.remove(Tile.valueToTile(Tile.tileToValue(item.tile)))
+            self.handtile.remove(Tile.valueToTile(Tile.tileToValue(item.tile)))
+            self.handtile.remove(Tile.valueToTile(Tile.tileToValue(item.tile)))
+            self.handtile.remove(Tile.valueToTile(Tile.tileToValue(item.tile)))
             self.melds.append(
                 (Tile.tileToUtf('8z'), Tile.tileToUtf(item.tile), Tile.tileToUtf(item.tile), Tile.tileToUtf('8z')))
             return
@@ -180,13 +215,13 @@ class simulator:
 
     def calculateBest(self):
         a = reasoner()
-        choices, xh = a.discardTileList([Tile.tileToValue(i) for i in self.handtile])
+        choices, xh = a.discardTileList([Tile.tileToValue(i) for i in self.handtile], self.playernum)
         bestChoices = []
         for i in choices.keys():
             tmp = 0
             for j in choices[i][0]:
                 tmp += 4 - self.visibleTile[j]
-            bestChoices.append((i, tmp, choices[i][1]))
+            bestChoices.append((i, tmp, choices[i][1], choices[i][0]))
         bestChoices.sort(key=lambda x: x[1], reverse=True)
         return xh, bestChoices
 

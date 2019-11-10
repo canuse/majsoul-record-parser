@@ -73,68 +73,36 @@
                     <th>Expected Choice <br>(期望选择)</th>
                     <th>Reasoning <br>(牌理)</th>
                 </tr>
-                {% for round in game.rounds %}
+                {% for round in game.round %}
                     <tr style="background-color: {% if round.somebody_richii %} rgba(0, 0, 255, {% else %} rgba(255, 0, 0, {% endif %}{{ round.wrong_rate }});">
                         <td>{{ loop.index }}</td>
                         <td>
                             {% for meld in round.melds %}<span class="tile">{{ meld }}</span>{% endfor %}<span
                                 class="tile">{{ round.hand }}</span>
                         </td>
-                        <td class="tile">{{ round.your_choice_reasoning.discard_tile }}</td>
+                        <td class="tile">{{ round.your_choice }}</td>
                         <td class="tile">
-                            {% for reasoning in round.expected_reasonings %}{{ reasoning.discard_tile }}{% endfor %}
+                            {% for reasoning in round.good_choice %}{{ reasoning }}{% endfor %}
                         </td>
                         <td>
                             <details>
                                 <summary>
-                                    Expected: Steps {{ round.expected_reasonings[0].waiting_step }}
-                                    Tiles {{ round.expected_reasonings[0].useful_tiles_count }},
-                                    Actual: Steps {{ round.your_choice_reasoning.waiting_step }}
-                                    Tiles {{ round.your_choice_reasoning.useful_tiles_count }}
+                                    Expected: Steps {{ round.xh }}
+                                    Tiles {{ round.tiles }},
+                                    Actual: Steps {{ round.yxh }}
+                                    Tiles {{ round.ytiles }}
                                 </summary>
-                                {% for reasoning in round.merged_reasoning %}
+                                {% for reasoning in round.allstat %}
                                     <div class="reasoning-tile">
                                         <div>Discard<span
-                                                class="tile-small">{{ reasoning.discard_tile }}</span>{{ reasoning.waiting_step }}
+                                                class="tile-small">{{ reasoning[0] }}</span>{{ reasoning[2] }}
                                             Steps
-                                            {{ reasoning.useful_tiles_count }} Tiles
+                                            {{ reasoning[1] }} Tiles
                                         </div>
-                                        <div>Expect<span class="tile-small">{{ reasoning.useful_tiles }}</span>
+                                        <div>Expect<span class="tile-small">{{ reasoning[3] }}</span>
                                         </div>
                                     </div>
                                 {% endfor %}
-                                <details>
-                                    <summary>
-                                        Normal-Type Reasoning
-                                    </summary>
-                                    {% for reasoning in round.normal_reasonings %}
-                                        <div class="reasoning-tile">
-                                            <div>Discard<span
-                                                    class="tile-small">{{ reasoning.discard_tile }}</span>{{ reasoning.waiting_step }}
-                                                Steps
-                                                {{ reasoning.useful_tiles_count }} Tiles
-                                            </div>
-                                            <div>Expect<span class="tile-small">{{ reasoning.useful_tiles }}</span>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                </details>
-                                <details>
-                                    <summary>
-                                        Seven-Pair Reasoning
-                                    </summary>
-                                    {% for reasoning in round.seven_pair_reasonings %}
-                                        <div class="reasoning-tile">
-                                            <div>Discard<span
-                                                    class="tile-small">{{ reasoning.discard_tile }}</span>{{ reasoning.waiting_step }}
-                                                Steps
-                                                {{ reasoning.useful_tiles_count }} Tiles
-                                            </div>
-                                            <div>Expect<span class="tile-small">{{ reasoning.useful_tiles }}</span>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                </details>
                             </details>
 
                         </td>
