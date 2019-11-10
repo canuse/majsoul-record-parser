@@ -111,12 +111,15 @@ class reasoner:
         if length >= 1:
             self._caipaidfs(singleNumber + 1, quetou, doubleNumber, tripleNumber, tileList[1:])
 
-    def findJinZhang(self, tileList, currentxh):
+    def findJinZhang(self, tileList, currentxh, gametype):
         jinzhangList = []
         nxh = 100
         for i in range(38):
             if i in [0, 10, 20, 30]:
                 continue
+            if gametype == 3:
+                if i in [2, 3, 4, 5, 6, 7, 8]:
+                    continue
             if tileList.count(i) == 4:
                 continue
             tileList.append(i)
@@ -126,15 +129,15 @@ class reasoner:
                 jinzhangList.append(i)
         return jinzhangList, nxh
 
-    def discardTileList(self, tileList):
+    def discardTileList(self, tileList, gametype):
         xh = self.caipai(tileList)
         jzd = {}
         for i in np.unique(tileList):
             # print(Tile.valueToTile(i))
             tileList.remove(i)
-            tmp, nxh = self.findJinZhang(tileList.copy(), xh)
+            tmp, nxh = self.findJinZhang(tileList.copy(), xh, gametype)
             if tmp != []:
-                jzd[Tile.valueToTile(i)] = (tmp,nxh)
+                jzd[Tile.valueToTile(i)] = (tmp, nxh)
             tileList.append(i)
             tileList.sort()
         return jzd, xh
