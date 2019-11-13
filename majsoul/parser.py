@@ -351,10 +351,7 @@ def parseFromDisk(filename):
 '''
 
 
-def parseFromBase64(filename):
-    with open(filename, 'r') as f:
-        raw = f.read()
-    data = base64.b64decode(raw)[3:]
+def parseFromBase64data(data):
     tsc = parser(scanner(data))
     tsc.skip()
     field, type = tsc.getType()
@@ -410,6 +407,13 @@ def parseFromBase64(filename):
         r = requests.get(data)
         a = parseGame(r.content, players, uuid)
         return a.parse()
+
+
+def parseFromBase64(filename):
+    with open(filename, 'r') as f:
+        raw = f.read()
+    data = base64.b64decode(raw)[3:]
+    return parseFromBase64data(data)
 
 
 if __name__ == "__main__":
