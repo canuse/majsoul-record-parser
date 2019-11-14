@@ -35,15 +35,10 @@ var scriptString = (function () {
                 while (s.length < 2) s = '0' + s;
                 return s;
             });
-            val.hexstr = hexarr.join('');
             val.string = unescape(hexarr.map(function (i) {
                 return '%' + i;
             }).join(''));
             val.b64str = btoa(val.string);
-            try {
-                val.string = decodeURIComponent(escape(val.string));
-            } catch (e) {
-            }
             return val;
         }
     }
