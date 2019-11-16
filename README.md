@@ -4,7 +4,7 @@
 
 解析雀魂牌谱并分析
 
-运行环境：**Python 3.5+**
+运行环境：**Python 3.5+**, Chrome/Firefox, Tampermonkey
 
 ## 样例说明
 
@@ -24,43 +24,31 @@
 
 ## 使用方式
 
-由于诸多原因，全自动从链接直接生成分析结果的功能鸽了。
+以Chrome为例，具体步骤如下：
 
-以chrome为例，具体步骤如下：
+### 1. 安装Tampermonkey插件以及脚本
 
-### 1. 获取牌谱数据
+通过Chrome应用商店或其他教程安装Tampermonkey插件。
 
-打开一个新的标签页，按下F12打开控制台。
+在Tampermonkey中选择添加新脚本，将<a href="https://github.com/canuse/majsoul-record-parser/blob/master/js/majsoul.js">js/majsoul.js</a>中的内容复制到弹出的窗口中并保存。
 
-在地址栏中输入牌谱链接，登录雀魂（如果需要），等待网页加载完毕。
+该脚本会自动将雀魂websocket中的数据转发到本地，以供分析。
 
-在控制台中，切换到Network标签，在筛选条件中选择ws，应该可以看到唯一的一条ws消息。
+理论上该脚本对于网站性能及数据没有影响，如果开启后玄学变卡或脱欧入非，请考虑在分析牌谱以外的时间在Tampermonkey中关闭此脚本并刷新页面。
 
-在该消息中，找到我们需要的数据，并右键复制为base64格式。该数据一般具有以下特征：
-* 是最后几条收到的消息（除去心跳包）之一
-* 如果牌谱较新（3天内），该消息一般比其他消息大很多（20kb+）
-* 如果牌谱较旧，该消息的末尾有```https://mj-srv-3.majsoul.com:7343/majsoul/game_record/```
-* 该消息一般紧挨着内容为```lq.Lobby.fetchGameRecord （uuid）```的消息
+### 2. 牌谱分析
 
-如果你想通过登陆后的牌谱栏查看自己的牌谱，上面的4个特征一般依然符合。
-
-![finddata.png](https://i.loli.net/2019/11/10/9wbQ6IxsMoW7hEZ.png)
-
-### 2.运行分析
-
-将复制的数据保存到合适的地方，之后进入项目根目录。
-
-运行
+我们使用一个简单的HTTP server处理收到的数据，运行```main.py```开启服务器。
 ```shell script
 python3 main.py
 ```
-在输入框中数据保存的文件路径，以及需要检查的用户名（或留空检查所有用户）
+之后，在雀魂网页中选择期望分析的牌谱并点击查看即自动开始分析。
 
 ### 3. 查看结果
 
-结果保存在当前目录下，文件名为'majsoul_record'+game_uuid+playername
+结果保存在当前目录下，文件名为'majsoul_record'+game_uuid+playername。由于windows文件名限制，部分特殊符号会被转换。
 
-模板使用了<a href="https://github.com/Ledenel/auto-white-reimu">Ledenel/auto-white-reimu</a>的模板。
+模板使用了<a href="https://github.com/Ledenel/auto-white-reimu/blob/master/mahjong/templates/record_checker_template.html">Ledenel/auto-white-reimu</a>的模板。
 
 注意，结果仅供参考。
 
@@ -68,6 +56,17 @@ python3 main.py
 
 * 多家和了情况下程序可能异常退出
 * 幺九牌过多导致的偏差。例如8种九牌时，一般此时向国士的向听数比一般型低，但是实际上正常玩家可能考虑的还是一般型。
+
+## 自动化（实验）
+
+我们使用selenium完成输入牌谱的完整自动化分析，脚本位于<a href="https://github.com/canuse/majsoul-record-parser/blob/master/auto/auto.py">auto/auto.py</a>.
+
+关于selenium的安装与配置，请参考官方文档。
+
+我们还使用selenium加载了chrome的默认配置，请参考<a href="https://stackoverflow.com/questions/31062789/how-to-load-default-profile-in-chrome-using-python-selenium-webdriver">How to load default profile in chrome using Python Selenium Webdriver?
+</a>补充auto.py中的部分路径。
+
+目前此方法打开浏览器等操作较缓慢，正常使用请用第一种方法。
 
 ## 接口
 
@@ -80,7 +79,7 @@ python3 main.py
 
 Decode Majsoul records and analyze it.
 
-Require **Python3.5+**
+Require **Python3.5+**, Chrome/Firefox, Tampermonkey
 
 ## Example
 
@@ -100,44 +99,48 @@ In the result html files, those operations will a low η will be deeper.
 
 ## How to use
 
-For some reasons, the fully-automatic script is not available now, but it's in the todo list and might be finished in a couple of months.
-
 The following steps are using a chrome browser.
 
-### 1. Get the Paipu Record
+### 1. Install Tampermonkey and scripts
 
-Open a new chrome tab, and press F12 to open devtools.
+Tampermonkey in an extension of Chrome and Firefox, you can install it easily from the Chrome online extension store.
 
-Enter the paipu link in the address line and wait the website is fully loaded.(login might be required)
+To add the scripts into Tampermonkey, you need to click the Tampermonkey icon on the top right of the tool bar, and select 'add script'.
+Then please copy the script <a href="https://github.com/canuse/majsoul-record-parser/blob/master/js/majsoul.js">js/majsoul.js</a> into the window and press save button.
 
-Switch to Network tab in the devtools window, and filter the data by ws. There should be only one ws connect.
+Restart the browser if needed.
 
-Find the target data and copy it in base64 format. The data should contain these characteristics:
+The script will automatically forward the data in the majsoul websocket connection to the localhost, which can be analyzed later.
 
-* It should be the last few received messages (except the heartbeat)
-* If the record is new (match completed less than 3 days), then it should be much larger than other messages.(usually 30kb+)
-* Otherwise, it should contain ```https://mj-srv-3.majsoul.com:7343/majsoul/game_record/```
-* The message usually follows the ```lq.Lobby.fetchGameRecord （uuid）```message
+The script should affect neither the performance nor the data of the website, but if you are facing that problem, please turn off the script. 
 
-![finddata.png](https://i.loli.net/2019/11/10/RwXYUQkduc1EJO3.png)
+### 2. Paipu Analyze
 
-### 2. Run Programme
-
-Save the copied message into a file, and then return to the root folder of this programme.
-
-execute
+We use a simple HTTP server to process the received data. You can execute ```main.py``` to start the server.
 ```shell script
 python3 main.py
 ```
-Enter that file path and the player name to check (or leave it empty to check all users).
+
+Then you can visit the Paipu link and the analyze programme will automatically start.
 
 ### 3. Results
 
-It should be save in the same folder, whose filename should be 'majsoul_record'+game_uuid+playername
+It should be save in the same folder, whose filename should be 'majsoul_record'+game_uuid+playername. Note that some symbols will be renamed due to the naming restrictions of windows.
 
 The templates is from <a href="https://github.com/Ledenel/auto-white-reimu">Ledenel/auto-white-reimu</a>.
 
 Notice that the results should only be a suggestion, it should never be consider as the only right choice or the guideline to play mahjong.
+
+## Link-to-result script (experimental)
+
+We use selenium to finish this task. The script can be found at <a href="https://github.com/canuse/majsoul-record-parser/blob/master/auto/auto.py">auto/auto.py</a>.
+
+To install and config Selenium, you can refer to the official documents.
+
+You also need to complete the path in auto.py, please refer to <a href="https://stackoverflow.com/questions/31062789/how-to-load-default-profile-in-chrome-using-python-selenium-webdriver">How to load default profile in chrome using Python Selenium Webdriver?
+</a>.
+
+There are some problems including low performance currently in this script, **so the first method is recommended**.
 
 ## Known Bugs
 
