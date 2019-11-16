@@ -102,7 +102,8 @@ class simulator:
                     ht = ht + Tile.tileToUtf(i)
                 tround = round(self.isrichi, 1, melds, ht,
                                Tile.tileToUtf(item.tile), [Tile.tileToUtf(i) for i in allchoice],
-                               [Tile.tileToUtf(i) for i in goodchoice], xh, choices[0][2], len(self.game.round) + 1,
+                               [Tile.tileToUtf(i) for i in goodchoice], choices[0][2] + 1, choices[0][2],
+                               len(self.game.round) + 1,
                                bestRateP, -1, cc)
                 self.game.round.append(tround)
                 print('wrong')
