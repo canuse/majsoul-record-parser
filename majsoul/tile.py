@@ -52,10 +52,16 @@ class Tile:
 
     @staticmethod
     def nextTile(tile):
+        if tile[0]=='0':
+            return str(int(tile[0]) + 6) + tile[1]
+
         return str(int(tile[0]) + 1) + tile[1]
+
 
     @staticmethod
     def prevTile(tile):
+        if tile[0]=='0':
+            return str(int(tile[0]) + 4) + tile[1]
         return str(int(tile[0]) - 1) + tile[1]
 
     @staticmethod
