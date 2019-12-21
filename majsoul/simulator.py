@@ -252,8 +252,3 @@ class simulator:
                 self.report[0].game.append(self.game)
 
 
-if __name__ == "__main__":
-    a = parseFromBase64('../test/b643.txt')
-    # a.print()
-    b = simulator(a, '||||||')
-    b.simulate()
