@@ -216,7 +216,11 @@ class parseRound(parser):
                 iszimo = itf1.getVariant()
                 field, type = itf.getType()
                 oldscore = []
-                itf.getVariant()
+                ta=itf.getVariant()
+                if ta > 12:
+                    itf.fetch(ta)
+                    field, type = itf.getType()
+                    ta = itf.getVariant()
                 for i in handtile:
                     oldscore.append(itf.getVariant())
                 itf.skipString()

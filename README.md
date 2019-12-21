@@ -67,7 +67,7 @@ There are some problems including low performance currently in this script, **so
 
 ## Known Bugs
 
-* Multiple player hule in the same game. That will cause a crash. This bug would be fixed recently.
+* (fixed)~~Multiple player hule in the same game. That will cause a crash. This bug would be fixed recently.~~
 * Bias on yaojiu(幺九) tiles. Suppose we have 8 yaojiu tiles now, usually the number of step to guoshiwusuang(国士无双) is smaller than normal type wins, but most players prefers normal win types.
 
 ## api
